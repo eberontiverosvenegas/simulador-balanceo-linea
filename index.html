@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Simulador de Balanceo de Línea - Actividad por equipos</title>
+<style>
+body{font-family:Arial,sans-serif;background:#f4f6f8;margin:0;color:#202124}
+header{background:#263238;color:white;padding:24px}
+main{max-width:1100px;margin:20px auto;padding:0 16px}
+.card{background:white;border-radius:12px;padding:20px;margin:16px 0;box-shadow:0 2px 8px #0001}
+h1,h2{margin-top:0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+label{font-weight:bold;display:block;margin-bottom:5px}
+input,select{width:100%;padding:10px;border:1px solid #bbb;border-radius:7px;box-sizing:border-box}
+.role{padding:12px;border:1px solid #ddd;border-radius:8px;background:#fafafa}
+.op{display:flex;align-items:center;justify-content:space-between;padding:12px;border:1px solid #ddd;border-radius:8px;margin:7px 0;background:#fff}
+.station{border:2px solid #90a4ae;border-radius:10px;padding:12px;min-height:80px}
+.station.over{border-color:#d32f2f;background:#ffebee}
+.station.ok{border-color:#388e3c;background:#f1f8e9}
+.btn{border:0;border-radius:8px;padding:11px 16px;cursor:pointer;font-weight:bold}
+.primary{background:#1565c0;color:white}.success{background:#2e7d32;color:white}.secondary{background:#eceff1}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.metric{padding:15px;border-radius:9px;background:#eceff1;text-align:center}.metric b{display:block;font-size:24px}
+#result{display:none}
+.small{font-size:13px;color:#5f6368}
+#receipt{white-space:pre-wrap;background:#f7f7f7;padding:15px;border-radius:8px}
+</style>
+</head>
+<body>
+<header>
+<h1>🏭 Simulador de Balanceo de Línea</h1>
+<p>Actividad colaborativa · 4 equipos de 5 alumnos</p>
+</header>
+<main>
+<section class="card">
+<h2>1. Registro del equipo</h2>
+<div class="grid">
+<div><label>Equipo</label><select id="team"><option>Equipo 1</option><option>Equipo 2</option><option>Equipo 3</option><option>Equipo 4</option></select></div>
+<div><label>Nombre del equipo</label><input id="teamName" placeholder="Ej. Los Ingenieros"></div>
+</div>
+<div class="grid" style="margin-top:12px">
+<div><label>Alumno 1</label><input id="s1"></div><div><label>Alumno 2</label><input id="s2"></div>
+<div><label>Alumno 3</label><input id="s3"></div><div><label>Alumno 4</label><input id="s4"></div>
+<div><label>Alumno 5</label><input id="s5"></div>
+</div>
+<h3>Roles</h3>
+<div class="grid">
+<div class="role">👤 <b>Coordinador</b><br>Organiza las decisiones del equipo.</div>
+<div class="role">⏱️ <b>Analista de tiempos</b><br>Verifica los tiempos de operación.</div>
+<div class="role">🏭 <b>Distribuidor</b><br>Propone la asignación a estaciones.</div>
+<div class="role">📊 <b>Analista de eficiencia</b><br>Revisa cálculos y resultados.</div>
+<div class="role">📝 <b>Documentador</b><br>Registra la solución y conclusiones.</div>
+</div>
+</section>
+
+<section class="card">
+<h2>2. Instrucciones</h2>
+<ol>
+<li>Trabajen como un solo equipo de cinco personas.</li>
+<li>Distribuyan las operaciones A–G entre las estaciones.</li>
+<li>Ninguna estación puede superar el <b>tiempo de ciclo de 60 segundos</b>.</li>
+<li>Busquen utilizar el menor número posible de estaciones y reducir el tiempo ocioso.</li>
+<li>Revisen la eficiencia y el cuello de botella antes de entregar.</li>
+<li>Presionen <b>Entregar solución</b> cuando consideren que terminaron.</li>
+</ol>
+<p><b>Operaciones:</b> A=35 s, B=25 s, C=40 s, D=20 s, E=45 s, F=30 s, G=25 s.</p>
+</section>
+
+<section class="card">
+<h2>3. Asignación de operaciones</h2>
+<p class="small">Selecciona la estación para cada operación. Puedes agregar estaciones si lo necesitas.</p>
+<div id="ops"></div>
+<button class="btn secondary" onclick="addStation()">+ Agregar estación</button>
+<div id="stations" class="grid" style="margin-top:15px"></div>
+</section>
+
+<section class="card">
+<h2>4. Resultados del equipo</h2>
+<div class="metrics">
+<div class="metric">Estaciones<b id="mStations">0</b></div>
+<div class="metric">Tiempo total<b id="mTotal">0 s</b></div>
+<div class="metric">Ocio total<b id="mIdle">0 s</b></div>
+<div class="metric">Eficiencia<b id="mEff">0%</b></div>
+<div class="metric">Estado<b id="mState">—</b></div>
+</div>
+<p id="feedback"></p>
+</section>
+
+<section class="card">
+<h2>5. Entrega y calificación automática</h2>
+<p>La calificación considera: solución válida, número de estaciones, eficiencia y participación/registro del equipo.</p><p class="small">Al enviar, los resultados se registran automáticamente en la hoja del profesor. Cada equipo puede registrar una sola entrega.</p>
+<button class="btn success" onclick="submitWork()">🏁 Enviar al profesor</button>
+<div id="result">
+<h3>Resultado</h3>
+<p id="score"></p>
+<div id="receipt"></div>
+<button class="btn primary" onclick="window.print()">🖨️ Imprimir / guardar PDF</button>
+</div>
+</section>
+</main>
+<script>
+const CT=60;
+const data={A:35,B:25,C:40,D:20,E:45,F:30,G:25};
+let stations=[[],[],[]];
+
+function render(){
+ let ops=document.getElementById('ops');
+ ops.innerHTML='';
+ Object.entries(data).forEach(([k,v])=>{
+  let current=stations.findIndex(s=>s.includes(k));
+  let d=document.createElement('div');d.className='op';
+  d.innerHTML=`<span><b>${k}</b> — ${v} segundos</span>
+  <select onchange="move('${k}',this.value)">
+   <option value="-1">Sin asignar</option>
+   ${stations.map((_,i)=>`<option value="${i}" ${current===i?'selected':''}>Estación ${i+1}</option>`).join('')}
+  </select>`;
+  ops.appendChild(d);
+ });
+ renderStations(); calc();
+}
+function move(op,val){
+ stations.forEach(s=>{let i=s.indexOf(op);if(i>=0)s.splice(i,1)});
+ if(+val>=0)stations[+val].push(op);
+ render();
+}
+function addStation(){stations.push([]);render()}
+function renderStations(){
+ let box=document.getElementById('stations');box.innerHTML='';
+ stations.forEach((s,i)=>{
+  let total=s.reduce((a,o)=>a+data[o],0);
+  let div=document.createElement('div');div.className='station '+(total>CT?'over':'ok');
+  div.innerHTML=`<b>Estación ${i+1}</b><br>
+  Operaciones: ${s.length?s.join(', '):'—'}<br>
+  Tiempo: <b>${total} s</b> / ${CT} s<br>
+  ${total>CT?'❌ EXCEDE EL CICLO':'✅ Dentro del ciclo'}`;
+  box.appendChild(div);
+ });
+}
+function calc(){
+ let assigned=[...new Set(stations.flat())].length;
+ let used=stations.filter(s=>s.length).length;
+ let total=Object.values(data).reduce((a,b)=>a+b,0);
+ let idle=used?used*CT-total:0;
+ let eff=used?total/(used*CT)*100:0;
+ let over=stations.some(s=>s.reduce((a,o)=>a+data[o],0)>CT);
+ document.getElementById('mStations').textContent=used;
+ document.getElementById('mTotal').textContent=total+' s';
+ document.getElementById('mIdle').textContent=(used?Math.max(0,idle):0)+' s';
+ document.getElementById('mEff').textContent=eff.toFixed(1)+'%';
+ document.getElementById('mState').textContent=over?'❌ No válida':assigned===7?'✅ Válida':'⚠️ Incompleta';
+ document.getElementById('feedback').innerHTML=over?
+ 'Hay al menos una estación que supera los 60 segundos. Ajusten la distribución.':
+ assigned<7?'Todavía faltan operaciones por asignar.':
+ 'La distribución cumple el límite de ciclo. Ahora intenten mejorar eficiencia y reducir estaciones.';
+}
+const URL_APPS_SCRIPT =
+"https://script.google.com/macros/s/AKfycbyQ3DtyBgSR9svKvKULk2VDASdeE9d7jdFEwDOuxbrwjfg1eScvKIByvS1mFoYcO9hF/exec";
+
+async function submitWork(){
+ let names=[1,2,3,4,5].map(i=>document.getElementById('s'+i).value.trim());
+ let team=document.getElementById('team').value;
+ let tn=document.getElementById('teamName').value.trim()||'Sin nombre';
+ let used=stations.filter(s=>s.length).length;
+ let total=Object.values(data).reduce((a,b)=>a+b,0);
+ let idle=used*CT-total;
+ let eff=used?total/(used*CT)*100:0;
+ let assigned=[...new Set(stations.flat())].length;
+ let over=stations.some(s=>s.reduce((a,o)=>a+data[o],0)>CT);
+
+ if(!names.every(Boolean)){ alert('Capturen los 5 nombres de los integrantes antes de entregar.'); return; }
+ if(assigned<7||over){ alert('La solución todavía no es válida. Asignen todas las operaciones y no superen 60 s por estación.'); return; }
+
+ let stationPts=used===3?30:Math.max(0,30-(used-3)*10);
+ let effPts=Math.min(20,Math.max(0,eff/100*20));
+ let score=Math.round(40+stationPts+effPts+10);
+ let stationText=stations.map((s,i)=>s.length?`Estación ${i+1}: ${s.join(' + ')} = ${s.reduce((a,o)=>a+data[o],0)} s`:'').filter(Boolean).join('\n');
+
+ const datos={
+   equipo:team,
+   nombreEquipo:tn,
+   integrantes:names,
+   estaciones:used,
+   eficiencia:eff.toFixed(1)+'%',
+   tiempoOcioso:idle+' s',
+   puntuacion:score,
+   solucion:stationText
+ };
+ const button=document.querySelector('.success');
+ button.disabled=true; button.textContent='⏳ Enviando...';
+
+ try{
+   const response=await fetch(URL_APPS_SCRIPT,{
+     method:'POST',
+     headers:{'Content-Type':'text/plain;charset=utf-8'},
+     body:JSON.stringify(datos)
+   });
+   const result=await response.json();
+
+   if(!result.exito){
+     alert('❌ No se pudo registrar la entrega.\n'+result.mensaje);
+     button.disabled=false; button.textContent='🏁 Enviar al profesor';
+     return;
+   }
+
+   document.getElementById('score').innerHTML=`<b>Calificación automática: ${score}/100</b><br>Solución válida: 40/40 · Estaciones: ${stationPts}/30 · Eficiencia: ${effPts.toFixed(1)}/20 · Registro: 10/10<br><b>✅ Entrega recibida por el profesor</b><br>ID de entrega: <b>${result.id}</b>`;
+   document.getElementById('receipt').textContent=`EQUIPO: ${team} — ${tn}\nINTEGRANTES:\n${names.map((n,i)=>`${i+1}. ${n}`).join('\n')}\n\nSOLUCIÓN:\n${stationText}\n\nEstaciones utilizadas: ${used}\nTiempo total: ${total} s\nTiempo ocioso: ${idle} s\nEficiencia: ${eff.toFixed(1)}%\nCalificación: ${score}/100\n\nID DE ENTREGA: ${result.id}\nEstado: ENTREGA RECIBIDA POR EL PROFESOR`;
+   document.getElementById('result').style.display='block';
+   button.textContent='✅ Entrega enviada';
+   button.disabled=true;
+   localStorage.setItem('balanceo_entrega_'+team,result.id);
+ }catch(error){
+   console.error(error);
+   alert('❌ No fue posible conectar con Google.\n\nVerifica que la aplicación web esté publicada y accesible.');
+   button.disabled=false; button.textContent='🏁 Enviar al profesor';
+ }
+}
+render();
+</script>
+</body>
+</html>
